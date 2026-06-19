@@ -9,11 +9,7 @@ from quantcore.analytics import PerformanceMetrics
 st.set_page_config(page_title="QuantCore", page_icon="🧮", layout="wide")
 
 # ==========================================
-# DESIGN SYSTEM — "research desk" theme
-# Light, paper-and-ink dashboard with a navy/
-# green/red signal palette grounded in the
-# engine's own Market → Signal → Order → Fill
-# event pipeline.
+# DESIGN SYSTEM — pitch-dark "research desk" theme
 # ==========================================
 def inject_theme():
     st.markdown("""
@@ -21,23 +17,31 @@ def inject_theme():
     @import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
     :root {
-        --bg-base: #EEF1F6;
-        --bg-surface: #FFFFFF;
-        --bg-surface-soft: #F5F8FB;
-        --border: #DCE3EC;
-        --ink: #121826;
-        --ink-soft: #5B6678;
-        --gain: #1F7A53;
-        --loss: #B83A3A;
-        --accent: #2A4D8F;
-        --accent-soft: #E7EDF8;
+        --bg-base: #060709;
+        --bg-surface: #0E1116;
+        --bg-surface-soft: #161B22;
+        --border: #232A35;
+        --ink: #F2F5FA;
+        --ink-soft: #99A6BA;
+        --gain: #2ED999;
+        --loss: #FF6B6B;
+        --accent: #5B9DFF;
+        --accent-soft: rgba(91,157,255,0.12);
     }
 
     html, body, .stApp { background: var(--bg-base); font-family: 'Public Sans', sans-serif; }
-    .stApp { color: var(--ink); }
+    .stApp { color: var(--ink); cursor: default; }
     #MainMenu, footer { visibility: hidden; }
     header[data-testid="stHeader"] { background: transparent; }
+    .stAppDeployButton { display: none !important; }
     .block-container { padding-top: 2rem; max-width: 1220px; }
+
+    /* ---- Fix: dragging sliders / moving the mouse was highlighting text ---- */
+    .stApp * { -webkit-user-select: none; user-select: none; }
+    .stApp input, .stApp textarea {
+        -webkit-user-select: text; user-select: text; cursor: text;
+    }
+    div[data-testid="stDataFrame"] { cursor: default; }
 
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
@@ -75,6 +79,9 @@ def inject_theme():
         border-top: 1px solid var(--border); }
     .qc-section-label:first-of-type { border-top: none; padding-top: 0; margin-top: 0.2rem; }
 
+    /* ---- Widget labels (these were nearly invisible before — fixed here) ---- */
+    .stApp label p, div[data-testid="stWidgetLabel"] p { color: var(--ink-soft) !important; opacity: 1 !important; }
+
     /* ---- Cards ---- */
     .qc-card-header { font-family: 'Sora', sans-serif; font-weight: 600; font-size: 1rem; color: var(--ink);
         margin-bottom: 0.8rem; }
@@ -87,35 +94,43 @@ def inject_theme():
     @keyframes qc-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .qc-kpi { flex: 1; min-width: 170px; background: var(--bg-surface); border: 1px solid var(--border);
         border-top: 3px solid var(--accent); border-radius: 12px; padding: 1rem 1.2rem;
-        box-shadow: 0 6px 16px rgba(18,24,38,0.05); }
+        box-shadow: 0 8px 24px rgba(0,0,0,0.45); }
     .qc-kpi-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em;
         color: var(--ink-soft); text-transform: uppercase; margin-bottom: 0.45rem; }
     .qc-kpi-value { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 1.5rem; }
 
     /* ---- Streamlit widget overrides ---- */
     div[data-testid="stButton"] button {
-        background: var(--accent); color: #fff; font-family: 'Sora', sans-serif; font-weight: 600;
-        border: none; border-radius: 9px; padding: 0.6rem 1.1rem;
+        background: var(--accent); color: #051018; font-family: 'Sora', sans-serif; font-weight: 600;
+        border: none; border-radius: 9px; padding: 0.6rem 1.1rem; cursor: pointer;
         transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
-    div[data-testid="stButton"] button:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(42,77,143,0.3); }
+    div[data-testid="stButton"] button:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(91,157,255,0.35); }
 
     div[data-testid="stTextInput"] input, div[data-testid="stNumberInput"] input, div[data-testid="stDateInput"] input {
         background: var(--bg-surface-soft); border: 1px solid var(--border); color: var(--ink);
         font-family: 'IBM Plex Mono', monospace; border-radius: 8px;
     }
     div[data-testid="stTextInput"] input:focus, div[data-testid="stNumberInput"] input:focus,
-    div[data-testid="stDateInput"] input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(42,77,143,0.12); }
+    div[data-testid="stDateInput"] input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,157,255,0.15); }
+    div[data-testid="stNumberInput"] button {
+        background: var(--bg-surface-soft) !important; border: 1px solid var(--border) !important;
+        color: var(--ink) !important; cursor: pointer;
+    }
 
-    div[data-testid="stSlider"] label p { color: var(--ink-soft) !important; font-size: 0.85rem; }
     div[data-testid="stSlider"] div[role="slider"] { background-color: var(--accent) !important; }
     div[data-testid="stSlider"] div[data-baseweb="slider"] > div > div { background: var(--accent) !important; }
+    div[data-testid="stSlider"] div[data-baseweb="slider"] { cursor: pointer; }
 
     div[data-testid="stVerticalBlockBorderWrapper"] {
         background: var(--bg-surface) !important; border: 1px solid var(--border) !important;
-        border-radius: 14px !important; box-shadow: 0 6px 18px rgba(18,24,38,0.05);
+        border-radius: 14px !important; box-shadow: 0 8px 24px rgba(0,0,0,0.45);
     }
     section[data-testid="stSidebar"] hr { border-color: var(--border); }
+
+    div[data-baseweb="popover"], div[data-baseweb="calendar"] {
+        background: var(--bg-surface) !important; color: var(--ink) !important;
+    }
 
     div[data-testid="stDataFrame"] { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 
@@ -128,19 +143,19 @@ def inject_theme():
 
 inject_theme()
 
-PLOT_FONT = dict(family="Public Sans, sans-serif", color="#121826", size=12)
+PLOT_FONT = dict(family="Public Sans, sans-serif", color="#F2F5FA", size=12)
 
 def style_figure(fig):
     fig.update_layout(
-        plot_bgcolor="#FFFFFF",
-        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#0E1116",
+        paper_bgcolor="#0E1116",
         font=PLOT_FONT,
         margin=dict(l=10, r=10, t=10, b=10),
         hovermode="x unified",
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
                     bgcolor="rgba(0,0,0,0)"),
-        xaxis=dict(gridcolor="#EEF1F6", showline=True, linecolor="#DCE3EC", title=fig.layout.xaxis.title),
-        yaxis=dict(gridcolor="#EEF1F6", showline=True, linecolor="#DCE3EC", title=fig.layout.yaxis.title),
+        xaxis=dict(gridcolor="#232A35", showline=True, linecolor="#232A35", title=fig.layout.xaxis.title),
+        yaxis=dict(gridcolor="#232A35", showline=True, linecolor="#232A35", title=fig.layout.yaxis.title),
     )
     return fig
 
@@ -260,7 +275,7 @@ if run:
 
         fig_price.add_trace(go.Scatter(
             x=price_data.index, y=price_data["Close"], mode="lines", name="Close Price",
-            line=dict(color="#2A4D8F", width=2),
+            line=dict(color="#5B9DFF", width=2),
             hovertemplate="%{x|%b %d, %Y}<br>$%{y:,.2f}<extra></extra>",
         ))
 
@@ -270,13 +285,13 @@ if run:
 
             fig_price.add_trace(go.Scatter(
                 x=buys["timestamp"], y=buys["price"], mode="markers",
-                marker=dict(symbol="triangle-up", size=11, color="#1F7A53", line=dict(width=1, color="#FFFFFF")),
+                marker=dict(symbol="triangle-up", size=11, color="#2ED999", line=dict(width=1, color="#0E1116")),
                 name="BUY", hovertemplate="%{x|%b %d, %Y}<br>Buy @ $%{y:,.2f}<extra></extra>",
             ))
 
             fig_price.add_trace(go.Scatter(
                 x=sells["timestamp"], y=sells["price"], mode="markers",
-                marker=dict(symbol="triangle-down", size=11, color="#B83A3A", line=dict(width=1, color="#FFFFFF")),
+                marker=dict(symbol="triangle-down", size=11, color="#FF6B6B", line=dict(width=1, color="#0E1116")),
                 name="SELL", hovertemplate="%{x|%b %d, %Y}<br>Sell @ $%{y:,.2f}<extra></extra>",
             ))
 
@@ -289,7 +304,7 @@ if run:
 
         fig_equity.add_trace(go.Scatter(
             x=price_data.index[:len(equity)], y=equity, mode="lines", name="Portfolio Equity",
-            line=dict(color="#0F766E", width=2),
+            line=dict(color="#2DD4BF", width=2),
             hovertemplate="%{x|%b %d, %Y}<br>$%{y:,.2f}<extra></extra>",
         ))
 
